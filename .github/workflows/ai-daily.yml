@@ -1,0 +1,65 @@
+name: AI Daily
+
+on:
+  schedule:
+    # China time: 08:37. GitHub schedules use UTC, so this is 00:37 UTC.
+    - cron: "37 0 * * *"
+    # China time: 09:07. This generates the podcast script after the daily note.
+    - cron: "7 1 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "daily, podcast, or all"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - daily
+          - podcast
+
+permissions:
+  contents: write
+
+jobs:
+  ai-daily:
+    runs-on: ubuntu-latest
+    env:
+      AI_DAILY_TIMEZONE: Asia/Shanghai
+      FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate AI daily and push Feishu
+        if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'all' || inputs.mode == 'daily') || github.event.schedule == '37 0 * * *'
+        run: |
+          python3 ai_daily.py --output-dir AI-Daily --send-feishu
+
+      - name: Ensure AI daily exists for podcast
+        if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'all' || inputs.mode == 'podcast') || github.event.schedule == '7 1 * * *'
+        run: |
+          python3 ai_daily.py --output-dir AI-Daily
+
+      - name: Generate podcast script and push Feishu
+        if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'all' || inputs.mode == 'podcast') || github.event.schedule == '7 1 * * *'
+        run: |
+          python3 podcast_daily.py --input-dir AI-Daily --output-dir AI-Daily/Podcast --send-feishu
+
+      - name: Commit generated notes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add AI-Daily
+          if git diff --cached --quiet; then
+            echo "No generated notes to commit."
+          else
+            git commit -m "Update AI daily"
+            git push
+          fi
