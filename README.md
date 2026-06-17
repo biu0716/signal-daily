@@ -48,6 +48,21 @@ python3 podcast_daily.py \
   --output-dir "/Users/biu/Documents/Obsidian Vault/AI-Daily/Podcast"
 ```
 
+生成 Fish Audio 双人 mp3：
+
+```bash
+FISH_API_KEY="你的 Fish Audio API Key" \
+python3 podcast_daily.py \
+  --input-dir "/Users/biu/Documents/Obsidian Vault/AI-Daily" \
+  --output-dir "/Users/biu/Documents/Obsidian Vault/AI-Daily/Podcast" \
+  --audio always
+```
+
+默认双人声音沿用已选好的 Fish Audio voices：
+
+- Host A: `bc9e47fd83a04010ad6617ed54b92ee3`
+- Host B: `5c353fdb312f4888836a9a5680099ef0`
+
 同时推送播客稿摘要到飞书：
 
 ```bash
