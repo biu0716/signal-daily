@@ -460,15 +460,61 @@ def send_feishu_audio(token: str, chat_id: str, file_key: str) -> None:
     )
 
 
+def send_feishu_text_message(token: str, chat_id: str, text: str) -> None:
+    url = f"{FEISHU_API_BASE}/im/v1/messages?receive_id_type=chat_id"
+    feishu_json_request(
+        url,
+        {
+            "receive_id": chat_id,
+            "msg_type": "text",
+            "content": json.dumps({"text": text}, ensure_ascii=False),
+        },
+        token=token,
+    )
+
+
+def render_dialogue_transcript(date: str, dialogue: list[dict[str, str]]) -> str:
+    lines = [f"🎧 {date} AI 日课双人播客｜对谈文字", ""]
+    for segment in dialogue:
+        speaker = "主播 A" if segment.get("speaker") == "A" else "主播 B"
+        text = segment.get("text", "").strip()
+        if text:
+            lines.append(f"{speaker}：{text}")
+            lines.append("")
+    lines.append("👇 点击下一条音频即可边听边看。")
+    return "\n".join(lines)
+
+
+def split_feishu_text(text: str, limit: int = 3500) -> list[str]:
+    paragraphs = text.split("\n\n")
+    chunks: list[str] = []
+    current = ""
+    for paragraph in paragraphs:
+        candidate = paragraph if not current else f"{current}\n\n{paragraph}"
+        if len(candidate) <= limit:
+            current = candidate
+            continue
+        if current:
+            chunks.append(current)
+        current = paragraph
+    if current:
+        chunks.append(current)
+    return chunks
+
+
 def send_playable_feishu_audio(
     audio_path: Path,
     app_id: str,
     app_secret: str,
     chat_name: str,
+    date: str,
+    dialogue: list[dict[str, str]],
     chat_id: str = "",
 ) -> None:
     token = feishu_tenant_token(app_id, app_secret)
     chat_id = chat_id or find_feishu_chat(token, chat_name)
+    for text_chunk in split_feishu_text(render_dialogue_transcript(date, dialogue)):
+        send_feishu_text_message(token, chat_id, text_chunk)
     opus_path = convert_to_opus(audio_path)
     file_key = upload_feishu_audio(token, opus_path)
     send_feishu_audio(token, chat_id, file_key)
@@ -552,7 +598,15 @@ def main() -> int:
         chat_name = os.environ.get("FEISHU_CHAT_NAME", "AI日课群")
         chat_id = os.environ.get("FEISHU_CHAT_ID", "")
         if audio_path and app_id and app_secret:
-            send_playable_feishu_audio(audio_path, app_id, app_secret, chat_name, chat_id)
+            send_playable_feishu_audio(
+                audio_path,
+                app_id,
+                app_secret,
+                chat_name,
+                date,
+                dialogue,
+                chat_id,
+            )
 
     print(audio_path or output_path)
     return 0
