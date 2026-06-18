@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import mimetypes
 import os
 import re
 import shutil
@@ -21,6 +22,7 @@ DEFAULT_TIMEZONE = "Asia/Shanghai"
 FISH_AUDIO_TTS_URL = "https://api.fish.audio/v1/tts"
 HOST_A_VOICE_ID = "bc9e47fd83a04010ad6617ed54b92ee3"
 HOST_B_VOICE_ID = "5c353fdb312f4888836a9a5680099ef0"
+FEISHU_API_BASE = "https://open.feishu.cn/open-apis"
 
 
 @dataclass
@@ -306,6 +308,154 @@ def generate_audio(dialogue: list[dict[str, str]], output_path: Path, api_key: s
     return output_path
 
 
+def feishu_json_request(url: str, payload: dict | None = None, token: str = "", method: str = "POST") -> dict:
+    data = None if payload is None else json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    headers = {"Content-Type": "application/json; charset=utf-8"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    request = urllib.request.Request(url, data=data, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Feishu API failed: HTTP {exc.code}: {detail}") from exc
+    if result.get("code", 0) != 0:
+        raise RuntimeError(f"Feishu API failed: {result}")
+    return result
+
+
+def feishu_tenant_token(app_id: str, app_secret: str) -> str:
+    result = feishu_json_request(
+        f"{FEISHU_API_BASE}/auth/v3/tenant_access_token/internal",
+        {"app_id": app_id, "app_secret": app_secret},
+    )
+    token = result.get("tenant_access_token")
+    if not token:
+        raise RuntimeError("Feishu did not return tenant_access_token.")
+    return token
+
+
+def find_feishu_chat(token: str, chat_name: str) -> str:
+    page_token = ""
+    available_names: list[str] = []
+    while True:
+        query = {"page_size": "100"}
+        if page_token:
+            query["page_token"] = page_token
+        url = f"{FEISHU_API_BASE}/im/v1/chats?{urllib.parse.urlencode(query)}"
+        result = feishu_json_request(url, token=token, method="GET")
+        data = result.get("data", {})
+        for chat in data.get("items", []):
+            name = chat.get("name", "")
+            available_names.append(name)
+            if name == chat_name:
+                return chat["chat_id"]
+        if not data.get("has_more"):
+            break
+        page_token = data.get("page_token", "")
+    names = "、".join(name for name in available_names if name) or "无"
+    raise RuntimeError(f"机器人没有找到群聊「{chat_name}」。当前可见群聊：{names}")
+
+
+def convert_to_opus(audio_path: Path) -> Path:
+    if not shutil.which("ffmpeg"):
+        raise RuntimeError("Sending playable Feishu audio requires ffmpeg.")
+    opus_path = audio_path.with_suffix(".opus")
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            str(audio_path),
+            "-vn",
+            "-c:a",
+            "libopus",
+            "-b:a",
+            "48k",
+            "-application",
+            "audio",
+            str(opus_path),
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return opus_path
+
+
+def encode_multipart(fields: dict[str, str], file_field: str, file_path: Path) -> tuple[bytes, str]:
+    boundary = f"----CodexBoundary{os.urandom(12).hex()}"
+    chunks: list[bytes] = []
+    for name, value in fields.items():
+        chunks.extend(
+            [
+                f"--{boundary}\r\n".encode(),
+                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode(),
+                value.encode("utf-8"),
+                b"\r\n",
+            ]
+        )
+    mime_type = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
+    chunks.extend(
+        [
+            f"--{boundary}\r\n".encode(),
+            (
+                f'Content-Disposition: form-data; name="{file_field}"; '
+                f'filename="{file_path.name}"\r\n'
+            ).encode("utf-8"),
+            f"Content-Type: {mime_type}\r\n\r\n".encode(),
+            file_path.read_bytes(),
+            b"\r\n",
+            f"--{boundary}--\r\n".encode(),
+        ]
+    )
+    return b"".join(chunks), boundary
+
+
+def upload_feishu_audio(token: str, opus_path: Path) -> str:
+    body, boundary = encode_multipart({"file_type": "opus", "file_name": opus_path.name}, "file", opus_path)
+    request = urllib.request.Request(
+        f"{FEISHU_API_BASE}/im/v1/files",
+        data=body,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=120) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Feishu audio upload failed: HTTP {exc.code}: {detail}") from exc
+    if result.get("code", 0) != 0:
+        raise RuntimeError(f"Feishu audio upload failed: {result}")
+    return result["data"]["file_key"]
+
+
+def send_feishu_audio(token: str, chat_id: str, file_key: str) -> None:
+    url = f"{FEISHU_API_BASE}/im/v1/messages?receive_id_type=chat_id"
+    feishu_json_request(
+        url,
+        {
+            "receive_id": chat_id,
+            "msg_type": "audio",
+            "content": json.dumps({"file_key": file_key}, ensure_ascii=False),
+        },
+        token=token,
+    )
+
+
+def send_playable_feishu_audio(audio_path: Path, app_id: str, app_secret: str, chat_name: str) -> None:
+    token = feishu_tenant_token(app_id, app_secret)
+    chat_id = find_feishu_chat(token, chat_name)
+    opus_path = convert_to_opus(audio_path)
+    file_key = upload_feishu_audio(token, opus_path)
+    send_feishu_audio(token, chat_id, file_key)
+
+
 def github_file_url(path: Path) -> str:
     repository = os.environ.get("GITHUB_REPOSITORY")
     if not repository:
@@ -379,6 +529,11 @@ def main() -> int:
         if not args.feishu_webhook:
             raise SystemExit("error: --send-feishu requires --feishu-webhook or FEISHU_WEBHOOK_URL")
         send_feishu(args.feishu_webhook, render_feishu_text(date, output_path, items, audio_path))
+        app_id = os.environ.get("FEISHU_APP_ID")
+        app_secret = os.environ.get("FEISHU_APP_SECRET")
+        chat_name = os.environ.get("FEISHU_CHAT_NAME", "AI日课群")
+        if audio_path and app_id and app_secret:
+            send_playable_feishu_audio(audio_path, app_id, app_secret, chat_name)
 
     print(audio_path or output_path)
     return 0

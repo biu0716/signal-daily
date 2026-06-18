@@ -63,6 +63,14 @@ python3 podcast_daily.py \
 - Host A: `bc9e47fd83a04010ad6617ed54b92ee3`
 - Host B: `5c353fdb312f4888836a9a5680099ef0`
 
+如果同时配置以下环境变量，脚本会把音频转换为 OPUS，并通过飞书应用机器人发送到群聊中，群成员可以直接在线播放：
+
+- `FEISHU_APP_ID`
+- `FEISHU_APP_SECRET`
+- `FEISHU_CHAT_NAME`（可选，默认 `AI日课群`）
+
+应用机器人需要拥有 `im:chat:readonly`、`im:message:send_as_bot` 和 `im:resource` 权限，并已加入目标群聊。
+
 同时推送播客稿摘要到飞书：
 
 ```bash
