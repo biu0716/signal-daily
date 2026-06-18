@@ -5,19 +5,11 @@
   },
   {
     "speaker": "B",
-    "text": "今天的主线可以从这条开始：[AINews] GLM-5.2: the top Frontend Coding model in the world, IndexShare for Speculative Decoding。它不一定是最大的新闻，但适合作为今天理解 AI 进展的入口。"
+    "text": "今天的主线可以从这条开始：🔬 The Self-Driving Lab — Joseph Krause, Radical AI。它不一定是最大的新闻，但适合作为今天理解 AI 进展的入口。"
   },
   {
     "speaker": "A",
-    "text": "第 1 条，来自 Swyx：《[AINews] GLM-5.2: the top Frontend Coding model in the world, IndexShare for Speculative Decoding》。这条为什么值得听？"
-  },
-  {
-    "speaker": "B",
-    "text": "简单说，We have a new top open model in the world!模型层更新可能改变工具选择、成本结构和应用能力边界。我的判断是：先看是否有可验证的能力变化。我的初判是：发布类信息容易过期，除非它改变了你的工作流，否则只保留摘要。沉淀建议是：待复核。"
-  },
-  {
-    "speaker": "A",
-    "text": "第 2 条，来自 Swyx：《🔬 The Self-Driving Lab — Joseph Krause, Radical AI》。这条为什么值得听？"
+    "text": "第 1 条，来自 Swyx：《🔬 The Self-Driving Lab — Joseph Krause, Radical AI》。这条为什么值得听？"
   },
   {
     "speaker": "B",
@@ -25,7 +17,23 @@
   },
   {
     "speaker": "A",
-    "text": "第 3 条，来自 Demis Hassabis：《Unlocking UK house-building with AI-accelerated planning》。这条为什么值得听？"
+    "text": "第 2 条，来自 Swyx：《[AINews] Midjourney Medical: scan your organs like you step on a scale》。这条为什么值得听？"
+  },
+  {
+    "speaker": "B",
+    "text": "简单说，The only bootstrapped frontier lab announces its second product and second它来自固定高质量信息源，适合作为今日 Review 候选。我的判断是：先低成本浏览。我的初判是：标题和摘要还不足以证明它值得沉淀，需要打开原文找一个明确观点、数据或方法。沉淀建议是：默认不沉淀。"
+  },
+  {
+    "speaker": "A",
+    "text": "第 3 条，来自 Swyx：《[AINews] GLM-5.2: the top Frontend Coding model in the world, IndexShare for Speculative Decoding》。这条为什么值得听？"
+  },
+  {
+    "speaker": "B",
+    "text": "简单说，We have a new top open model in the world!模型层更新可能改变工具选择、成本结构和应用能力边界。我的判断是：先看是否有可验证的能力变化。我的初判是：发布类信息容易过期，除非它改变了你的工作流，否则只保留摘要。沉淀建议是：待复核。"
+  },
+  {
+    "speaker": "A",
+    "text": "第 4 条，来自 Demis Hassabis：《Unlocking UK house-building with AI-accelerated planning》。这条为什么值得听？"
   },
   {
     "speaker": "B",
@@ -33,19 +41,11 @@
   },
   {
     "speaker": "A",
-    "text": "第 4 条，来自 Swyx：《[AINews] Satya on Loopcraft: Building Frontier Ecosystems》。这条为什么值得听？"
+    "text": "第 5 条，来自 Swyx：《[AINews] Satya on Loopcraft: Building Frontier Ecosystems》。这条为什么值得听？"
   },
   {
     "speaker": "B",
     "text": "简单说，a quiet day lets us report on Satya's hit essay它来自固定高质量信息源，适合作为今日 Review 候选。我的判断是：先低成本浏览。我的初判是：标题和摘要还不足以证明它值得沉淀，需要打开原文找一个明确观点、数据或方法。沉淀建议是：默认不沉淀。"
-  },
-  {
-    "speaker": "A",
-    "text": "第 5 条，来自 Swyx：《[AINews] Open Models, Model Labs vs Agent Labs, and What's Untrainable — Sarah Guo》。这条为什么值得听？"
-  },
-  {
-    "speaker": "B",
-    "text": "简单说，a quiet day lets us reflect on a great essayAgent 内容容易很多，但真正有价值的是能否提供可复用的工作流、评估方法或失败案例。我的判断是：带着怀疑看。我的初判是：优先找具体案例和边界条件，少记录愿景，多记录可验证做法。沉淀建议是：待复核。"
   },
   {
     "speaker": "A",
