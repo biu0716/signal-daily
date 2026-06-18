@@ -361,7 +361,19 @@ def find_feishu_chat(token: str, chat_name: str) -> str:
 
 def convert_to_opus(audio_path: Path) -> Path:
     if not shutil.which("ffmpeg"):
-        raise RuntimeError("Sending playable Feishu audio requires ffmpeg.")
+        if os.environ.get("GITHUB_ACTIONS") == "true" and shutil.which("sudo"):
+            subprocess.run(
+                ["sudo", "apt-get", "update", "-qq"],
+                check=True,
+                stdout=subprocess.DEVNULL,
+            )
+            subprocess.run(
+                ["sudo", "apt-get", "install", "-y", "-qq", "ffmpeg"],
+                check=True,
+                stdout=subprocess.DEVNULL,
+            )
+        if not shutil.which("ffmpeg"):
+            raise RuntimeError("Sending playable Feishu audio requires ffmpeg.")
     opus_path = audio_path.with_suffix(".opus")
     subprocess.run(
         [
