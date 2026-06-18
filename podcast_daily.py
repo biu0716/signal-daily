@@ -23,7 +23,6 @@ FISH_AUDIO_TTS_URL = "https://api.fish.audio/v1/tts"
 HOST_A_VOICE_ID = "bc9e47fd83a04010ad6617ed54b92ee3"
 HOST_B_VOICE_ID = "5c353fdb312f4888836a9a5680099ef0"
 FEISHU_API_BASE = "https://open.feishu.cn/open-apis"
-DEFAULT_FEISHU_CHAT_ID = "oc_1c1ff2500f6bc839ec00c4503c708552"
 
 
 @dataclass
@@ -551,7 +550,7 @@ def main() -> int:
         app_id = os.environ.get("FEISHU_APP_ID")
         app_secret = os.environ.get("FEISHU_APP_SECRET")
         chat_name = os.environ.get("FEISHU_CHAT_NAME", "AI日课群")
-        chat_id = os.environ.get("FEISHU_CHAT_ID", DEFAULT_FEISHU_CHAT_ID)
+        chat_id = os.environ.get("FEISHU_CHAT_ID", "")
         if audio_path and app_id and app_secret:
             send_playable_feishu_audio(audio_path, app_id, app_secret, chat_name, chat_id)
 
