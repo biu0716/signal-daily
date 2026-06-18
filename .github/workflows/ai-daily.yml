@@ -27,6 +27,7 @@ jobs:
     env:
       AI_DAILY_TIMEZONE: Asia/Shanghai
       FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+      FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
 
     steps:
       - name: Check out repository
@@ -50,7 +51,7 @@ jobs:
       - name: Generate podcast script and push Feishu
         if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'all' || inputs.mode == 'podcast') || github.event.schedule == '7 1 * * *'
         run: |
-          python3 podcast_daily.py --input-dir AI-Daily --output-dir AI-Daily/Podcast --send-feishu
+          python3 podcast_daily.py --input-dir AI-Daily --output-dir AI-Daily/Podcast --audio always --send-feishu
 
       - name: Commit generated notes
         run: |
