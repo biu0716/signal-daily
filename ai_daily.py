@@ -17,7 +17,6 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 
-DEFAULT_VAULT = Path("/Users/biu/Documents/Obsidian Vault")
 CACHE_DIR = Path(".cache")
 DEFAULT_TIMEZONE = "Asia/Shanghai"
 
@@ -70,7 +69,7 @@ def fetch_url(url: str, timeout: int = 20) -> bytes:
     request = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "ai-daily-mvp/0.1 (+local Obsidian briefing)"
+            "User-Agent": "ai-daily/0.1"
         },
     )
     try:
@@ -81,7 +80,7 @@ def fetch_url(url: str, timeout: int = 20) -> bytes:
             return raw
     except Exception:
         # Some modern sites close TLS connections in ways urllib handles poorly.
-        # curl is present on macOS and makes this MVP much more reliable locally.
+        # curl is present on macOS and makes feed fetching more reliable locally.
         try:
             result = subprocess.run(
                 ["curl", "-fsSL", "--max-time", str(timeout), url],
@@ -208,39 +207,39 @@ def review_item(item: Item, score: int, score_reason: str, status: str) -> Revie
     title = item.title.lower()
 
     if "benchmark" in text or "frontiercode" in text:
-        why = "它不是又发布一个模型，而是在回答一个更实际的问题：AI 写的代码到底能不能用于真实项目。"
-        judgment = "重点看它是不是只比答题分数，还是也会检查代码好不好维护、能不能用于真实项目。只有后者，才真正有参考价值。"
-        keep = "待复核后大概率沉淀"
+        why = "它把 AI 编程能力放到真实项目里检验：代码能不能维护、能不能交付，比单纯分数更有参考价值。"
+        judgment = "看两点：评测有没有检查可维护性，结果能不能迁移到你的真实项目。如果只有答题分数，参考价值有限。"
+        keep = "优先复核，适合保存成笔记"
     elif "gemma" in text or "multimodal" in text:
         why = "它可能让看图、读文字这类 AI 功能运行得更便宜，也更容易放到自己的产品里。"
-        judgment = "先看三个问题：效果有没有变好、运行成本有没有下降、使用限制多不多。说不清这三点，就暂时不用投入太多时间。"
-        keep = "待复核"
+        judgment = "重点核对三件事：效果、成本、使用限制。三件事都说清楚，再判断要不要加入工具备选。"
+        keep = "有空看原文，再决定要不要保存"
     elif "robot" in text or "robotics" in text:
-        why = "机器人能检验 AI 是否真的会理解环境并完成动作，而不只是会在屏幕里回答问题。"
-        judgment = "先判断它讲的是公司合作新闻，还是机器人能力真的有了进步。前者知道即可，后者才值得仔细读。"
-        keep = "默认不沉淀"
+        why = "机器人是一个能力检验场：模型需要理解环境、完成动作，还要处理意外情况。"
+        judgment = "把它归到两类：公司合作消息，知道即可；能力确实进步，再打开原文细看。"
+        keep = "看过即可，不用保存"
     elif "agent" in text or "agents" in text:
-        why = "Agent 的概念很多，但真正有用的是具体做法：它完成了什么任务，哪里容易失败，能不能重复使用。"
-        judgment = "不要只看它说得多宏大。重点找真实案例：解决了什么任务、哪一步仍会失败、能不能放进现有工作流程。"
-        keep = "待复核"
+        why = "Agent 信息只有讲清具体任务、失败点和复用方式时，才值得占用今天的注意力。"
+        judgment = "打开原文时找三件事：解决了什么任务，哪一步还会失败，能不能放进现有工作流程。"
+        keep = "有空看原文，再决定要不要保存"
     elif "safety" in text or "alignment" in text:
         why = "安全规则会直接决定哪些模型能力能开放、产品能怎么用，也可能影响之后的监管要求。"
-        judgment = "先分清它带来了新证据，还是公司在表达立场。对实际产品和监管有影响的证据，更值得关注。"
-        keep = "待复核"
+        judgment = "看它有没有新证据、新规则或具体案例。只有立场表达的话，记住方向就够了。"
+        keep = "有空看原文，再决定要不要保存"
     elif "model" in text or "llm" in text:
         why = "新模型只有在效果、速度或价格上带来实际变化，才可能影响我们现在使用的工具。"
-        judgment = "别急着被排行榜吸引。先看它能不能让你现在的任务做得更好、更快或更便宜；如果不能，知道发布了就够了。"
-        keep = "待复核"
+        judgment = "用你手头任务判断：写作、代码、资料整理有没有更好、更快或更便宜。没有的话，记一笔发布信息就够。"
+        keep = "有空看原文，再决定要不要保存"
     else:
-        why = "它来自长期关注的信息源，但只看标题还无法判断价值，需要快速确认正文有没有新东西。"
-        judgment = "目前的信息还不够。打开原文时，只需要找一个明确的新观点、数据或可复用方法；如果没有，就不用继续花时间。"
-        keep = "默认不沉淀"
+        why = "它来自长期关注的信息源，不过标题和摘要还不足以判断价值。"
+        judgment = "信息量偏少。打开原文时找一个明确的新观点、数据或可复用方法；没有就快速跳过。"
+        keep = "看过即可，不用保存"
 
-    if status == "补位阅读" and keep == "待复核后大概率沉淀":
-        keep = "待复核"
+    if status == "补位阅读" and keep == "优先复核，适合保存成笔记":
+        keep = "有空看原文，再决定要不要保存"
 
-    if score <= 5 and keep != "默认不沉淀":
-        keep = "待复核"
+    if score <= 5 and keep != "看过即可，不用保存":
+        keep = "有空看原文，再决定要不要保存"
 
     return ReviewedItem(item, score, score_reason, status, why, judgment, keep)
 
@@ -285,15 +284,15 @@ def render_markdown(items: list[ReviewedItem], rules: dict, now: datetime, local
                     f"- 入选理由：{item.score_reason}",
                 ]
             )
-            if item.keep != "默认不沉淀":
-                lines.append(f"- 是否沉淀：{item.keep}")
+            if item.keep != "看过即可，不用保存":
+                lines.append(f"- 后续处理：{item.keep}")
             lines.append("")
 
     lines.extend(
         [
-            "## 今日沉淀",
+            "## 今日可保存",
             "",
-            f"> 规则：每天最多沉淀 {rules.get('max_deep_notes_per_day', 2)} 条。没有自己的判断，就先不要进知识库。",
+            f"> 规则：每天最多保存 {rules.get('max_deep_notes_per_day', 2)} 条。没有明确收获的内容，不进知识库。",
             "",
             "### 知识卡片 1",
             "- 主题：",
@@ -302,7 +301,7 @@ def render_markdown(items: list[ReviewedItem], rules: dict, now: datetime, local
             "- 可关联笔记：",
             "- 后续问题：",
             "",
-            "## 人工 Review",
+            "## 人工筛选",
             "- 删除不值得的：",
             "- 值得深入读的：",
             "- 今天真正学到的东西：",
@@ -332,8 +331,8 @@ def render_feishu_text(items: list[ReviewedItem], output_path: Path | None, now:
                 f"判断: {reviewed.judgment}",
             ]
         )
-        if reviewed.keep != "默认不沉淀":
-            lines.append(f"沉淀建议: {reviewed.keep}")
+        if reviewed.keep != "看过即可，不用保存":
+            lines.append(f"后续处理: {reviewed.keep}")
         lines.append("")
     return "\n".join(lines).strip()
 
@@ -411,7 +410,7 @@ def collect_items(config: dict, now: datetime) -> list[tuple[int, Item, str]]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Generate an Obsidian AI daily briefing.")
     parser.add_argument("--config", default="sources.json", help="Path to sources.json")
-    parser.add_argument("--output-dir", default=str(DEFAULT_VAULT / "AI-Daily"), help="Directory for generated Markdown")
+    parser.add_argument("--output-dir", default="AI-Daily", help="Directory for generated Markdown")
     parser.add_argument("--dry-run", action="store_true", help="Print Markdown instead of writing it")
     parser.add_argument("--send-feishu", action="store_true", help="Send a Feishu message after generating the briefing")
     parser.add_argument("--feishu-webhook", default=os.environ.get("FEISHU_WEBHOOK_URL"), help="Feishu bot webhook URL, or set FEISHU_WEBHOOK_URL")

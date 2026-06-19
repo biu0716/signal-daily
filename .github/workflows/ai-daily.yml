@@ -1,4 +1,4 @@
-name: AI Daily
+name: 今日信号 Signal Daily
 
 on:
   schedule:
@@ -17,6 +17,15 @@ on:
           - all
           - daily
           - podcast
+      audio:
+        description: "Audio generation for manual podcast runs"
+        required: true
+        default: "never"
+        type: choice
+        options:
+          - never
+          - auto
+          - always
 
 permissions:
   contents: write
@@ -40,20 +49,29 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Generate AI daily and push Feishu
+      - name: Generate AI daily
         if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'all' || inputs.mode == 'daily') || github.event.schedule == '37 0 * * *'
         run: |
-          python3 ai_daily.py --output-dir AI-Daily --send-feishu
+          FEISHU_ARGS=()
+          if [ -n "$FEISHU_WEBHOOK_URL" ]; then
+            FEISHU_ARGS+=(--send-feishu)
+          fi
+          python3 ai_daily.py --output-dir AI-Daily "${FEISHU_ARGS[@]}"
 
       - name: Ensure AI daily exists for podcast
         if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'all' || inputs.mode == 'podcast') || github.event.schedule == '7 1 * * *'
         run: |
           python3 ai_daily.py --output-dir AI-Daily
 
-      - name: Generate podcast script and push Feishu
+      - name: Generate podcast script
         if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'all' || inputs.mode == 'podcast') || github.event.schedule == '7 1 * * *'
         run: |
-          python3 podcast_daily.py --input-dir AI-Daily --output-dir AI-Daily/Podcast --audio always --send-feishu
+          AUDIO_MODE="${{ github.event_name == 'workflow_dispatch' && inputs.audio || 'auto' }}"
+          FEISHU_ARGS=()
+          if [ -n "$FEISHU_WEBHOOK_URL" ]; then
+            FEISHU_ARGS+=(--send-feishu)
+          fi
+          python3 podcast_daily.py --input-dir AI-Daily --output-dir AI-Daily/Podcast --audio "$AUDIO_MODE" "${FEISHU_ARGS[@]}"
 
       - name: Commit generated notes
         run: |

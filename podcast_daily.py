@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import urllib.error
 import urllib.parse
@@ -85,7 +86,7 @@ def parse_items(markdown: str) -> list[DailyItem]:
                 item.why = value
             elif key == "我的判断":
                 item.judgment = value
-            elif key == "是否沉淀":
+            elif key in {"是否沉淀", "后续处理"}:
                 item.keep = value
         items.append(item)
     return items
@@ -162,7 +163,7 @@ def explain_news(item: DailyItem) -> str:
     text = f"{item.title} {item.summary}".lower()
     if "anjney midha" in text or "outputmaxxing" in text:
         return (
-            "这是一篇对投资人 Anjney Midha 的近一小时访谈，但重点不只是他的投资经历。"
+            "这是一篇对投资人 Anjney Midha 的近一小时访谈。真正值得听的是他对算力利用率的判断。"
             "他认为 AI 行业现在太关注买多少 GPU，却忽略了 GPU 到底有没有被充分利用。"
             "一些大型训练集群的实际算力利用率可能很低，而做得好的团队可以达到六成到七成。"
             "他创办的 AMP 想把不同数据中心的算力连接成一张“算力电网”，根据任务的重要程度动态分配资源，减少昂贵算力闲置。"
@@ -171,7 +172,7 @@ def explain_news(item: DailyItem) -> str:
     if "midjourney medical" in text or ("scan" in text and "organs" in text):
         return (
             "Midjourney 展示了一台全身超声扫描原型机。它不用 X 光辐射，也不用 MRI 的强磁场，"
-            "而是让超声波从身体周围多个方向采集数据，再重建身体内部图像。"
+            "设备会从身体周围多个方向采集超声数据，再重建身体内部图像。"
             "目前设备仍是第一代原型，只扫描过大约十几个人，一次扫描可能需要二十分钟。"
             "团队希望以后把时间压缩到一分钟左右，并在旧金山开一家带扫描设备的健康中心。"
             "但它还没有完成医疗验证，也不能把宣传中的精度和未来用途当成已经实现的能力。"
@@ -210,13 +211,13 @@ def explain_relevance(item: DailyItem) -> str:
     text = f"{item.title} {item.summary}".lower()
     if any(word in text for word in ["investor", "anthropic", "mistral", "black forest labs", "fund"]):
         return (
-            "对你最有用的不是记住他投过哪些明星公司，而是理解一个产品判断：资源多不等于产出高，"
+            "这条对你有用的地方在于一个产品判断：资源多不等于产出高，"
             "真正拉开差距的是能否把算力、数据、团队和任务调度成一个高效系统。"
             "放到 PR Agent 上也一样，接入更强模型只是第一步，资料是否结构化、流程是否顺畅、结果是否能校验，才决定产品是否真的好用。"
         )
     if any(word in text for word in ["medical", "organ", "health", "diagnosis"]):
         return (
-            "它展示了一个很典型的 AI 产品思路：不只做模型，而是把硬件、数据、空间体验和长期服务组合成完整产品。"
+            "它展示了一个很典型的 AI 产品思路：把模型、硬件、数据、空间体验和长期服务组合成完整产品。"
             "对做垂直 Agent 的启发是，专业能力必须嵌入真实场景；同时医疗宣传风险很高，原型、目标和已验证能力必须严格区分。"
         )
     if any(word in text for word in ["coding", "frontend", "code", "glm"]):
@@ -233,13 +234,13 @@ def explain_relevance(item: DailyItem) -> str:
         )
     if any(word in text for word in ["self-driving lab", "materials", "radical ai", "experiment"]):
         return (
-            "这是最值得迁移到垂直 Agent 的一条经验：模型不是护城河，持续获得行业反馈的闭环才是。"
+            "这是最值得迁移到垂直 Agent 的一条经验：护城河往往来自持续获得行业反馈的闭环。"
             "汽车 PR Agent 也应该让每次任务产生反馈，例如哪些卖点被客户删掉、哪些事实经常出错、哪种品牌语气被接受，"
             "再把这些结果反哺资料库和规则。长期积累下来的真实修改记录，会比单纯换一个更强模型更难复制。"
         )
     if "agent" in text:
-        return "对你来说，重点不是 Agent 的概念，而是它能否完成真实任务、哪里会失败，以及是否能安全接入现有工作流程。"
-    return "先看它有没有提供新的事实、方法或案例。如果只是人物故事或宣传观点，知道发生了什么就够了，不必继续深挖。"
+        return "对你来说，重点放在三件事：它能否完成真实任务，哪里会失败，是否能安全接入现有工作流程。"
+        return "判断它的价值，看有没有新的事实、方法或案例。只有人物故事或宣传观点的话，知道发生了什么就够了。"
 
 
 def dialogue_exchanges(item: DailyItem) -> list[tuple[str, str]]:
@@ -266,7 +267,7 @@ def dialogue_exchanges(item: DailyItem) -> list[tuple[str, str]]:
     if "midjourney medical" in text or ("scan" in text and "organs" in text):
         return [
             (
-                "Midjourney 不是做图的吗？为什么突然去做医疗扫描？",
+                "Midjourney 以前主要做图，为什么现在开始做医疗扫描？",
                 "它展示了一台全身超声扫描原型机，希望把器官检查做成更日常的服务。设备从身体周围多个方向采集超声数据，再重建身体内部图像。",
             ),
             (
@@ -323,15 +324,15 @@ def dialogue_exchanges(item: DailyItem) -> list[tuple[str, str]]:
     if "self-driving lab" in text or "radical ai" in text:
         return [
             (
-                "“自动驾驶实验室”不是自动驾驶汽车吧？它到底是什么？",
-                "不是汽车。它指的是实验流程可以自己循环：AI 提出材料配方，机器人完成合成和测试，结果再反馈给 AI，接着设计下一轮实验。",
+                "“自动驾驶实验室”听起来像汽车，其实它到底是什么？",
+                "这里说的是实验室自动化。AI 提出材料配方，机器人完成合成和测试，结果再反馈给 AI，接着设计下一轮实验。",
             ),
             (
                 "这种自动循环真的比人工研究快很多吗？",
                 "他们称六个月内制造并测试了约一千二百种合金，速度接近传统项目的十倍。另一轮测试了三百种新材料，其中十种表现出新的领先性能。",
             ),
             (
-                "既然用了 AI，为什么创始人反而说模型不是护城河？",
+                "既然用了 AI，为什么创始人更强调实验室闭环？",
                 "因为材料实验没有模型能一次给出正确答案。真正难复制的是实验设备、持续产生的真实数据，以及把失败结果继续用于下一轮实验的闭环。",
             ),
             (
@@ -344,7 +345,7 @@ def dialogue_exchanges(item: DailyItem) -> list[tuple[str, str]]:
     relevance = explain_relevance(item).rstrip("。")
     return [
         ("先用一句话说，这条新闻到底发生了什么？", f"{news}。"),
-        ("这里面最值得注意的是什么？", "重点不是标题有多新，而是它有没有带来新的事实、方法或真实案例。"),
+        ("这里面最值得注意的是什么？", "看它有没有带来新的事实、方法或真实案例。只有标题新鲜，价值不够。"),
         ("有没有什么需要保留判断的地方？", "如果公开信息只有宣传口径或很短的摘要，就不能把未来目标当成已经实现的能力。"),
         ("最后，它和我们现在做的事有什么关系？", f"{relevance}。"),
     ]
@@ -379,10 +380,10 @@ def render_podcast(date: str, items: list[DailyItem], source_path: Path) -> str:
     ]
 
     transitions = [
-        "先看第一条。",
+        "第一条。",
         "第二条，我们换到另一个角度。",
         "第三条更适合放进工作流里理解。",
-        "第四条，重点不是标题本身，而是它背后的趋势。",
+        "第四条，我们看它背后的趋势。",
         "最后一条，可以作为今天的补位阅读。",
     ]
 
@@ -406,9 +407,9 @@ def render_podcast(date: str, items: list[DailyItem], source_path: Path) -> str:
 
     lines.extend(
         [
-            "## 给今天的行动建议",
+        "## 今日行动",
             "",
-            "今天不用追求把每条都读完。更适合做的一件事是：选一条最能连接你当前方向的内容，写下它对「汽车 PR Agent」的启发。比如它能不能帮助做竞品监测、卖点提炼、发布会内容生成，或者事实风险检查。",
+        "今天选一条最能连接当前方向的内容，写下它对「汽车 PR Agent」的启发。可以从竞品监测、卖点提炼、发布会内容生成、事实风险检查里任选一个角度。",
             "",
             "如果只能留下一个问题，就是：这条 AI 进展能不能变成一个真实 PR 工作流里的小功能？能，就继续拆；不能，就只当信息流经过。",
             "",
@@ -778,7 +779,19 @@ def github_file_url(path: Path) -> str:
     return f"https://github.com/{repository}/blob/main/{encoded}"
 
 
-def render_feishu_text(date: str, output_path: Path, items: list[DailyItem], audio_path: Path | None = None) -> str:
+def concise_audio_error(error: str) -> str:
+    if "insufficient" in error.lower() or "余量不足" in error or "quota" in error.lower():
+        return "Fish Audio 额度不足，暂未生成音频。"
+    return f"音频暂未生成：{short(error, 120)}"
+
+
+def render_feishu_text(
+    date: str,
+    output_path: Path,
+    items: list[DailyItem],
+    audio_path: Path | None = None,
+    audio_error: str = "",
+) -> str:
     top_items = items[:3]
     lines = [
         f"AI 日课播客版 - {date}",
@@ -799,6 +812,8 @@ def render_feishu_text(date: str, output_path: Path, items: list[DailyItem], aud
     if audio_path:
         audio_url = github_file_url(audio_path)
         lines.append(f"音频文件：{audio_url or audio_path}")
+    elif audio_error:
+        lines.append(concise_audio_error(audio_error))
     return "\n".join(lines)
 
 
@@ -830,19 +845,28 @@ def main() -> int:
     dialogue_path.write_text(json.dumps(dialogue, ensure_ascii=False, indent=2), encoding="utf-8")
 
     audio_path: Path | None = None
+    audio_error = ""
     fish_api_key = os.environ.get("FISH_API_KEY")
     should_generate_audio = args.audio == "always" or (args.audio == "auto" and bool(fish_api_key))
     if should_generate_audio:
         if not fish_api_key:
-            raise SystemExit("error: --audio always requires FISH_API_KEY")
-        audio_dir = Path(args.audio_dir).expanduser()
-        audio_path = audio_dir / f"{date} AI 日课双人播客.mp3"
-        generate_audio(dialogue, audio_path, fish_api_key)
+            audio_error = "--audio always requires FISH_API_KEY"
+        else:
+            audio_dir = Path(args.audio_dir).expanduser()
+            candidate_audio_path = audio_dir / f"{date} AI 日课双人播客.mp3"
+            try:
+                audio_path = generate_audio(dialogue, candidate_audio_path, fish_api_key)
+            except Exception as exc:
+                audio_error = str(exc)
+                audio_path = None
+                candidate_audio_path.unlink(missing_ok=True)
+    if audio_error:
+        print(f"warning: {concise_audio_error(audio_error)}", file=sys.stderr)
 
     if args.send_feishu:
         if not args.feishu_webhook:
             raise SystemExit("error: --send-feishu requires --feishu-webhook or FEISHU_WEBHOOK_URL")
-        send_feishu(args.feishu_webhook, render_feishu_text(date, output_path, items, audio_path))
+        send_feishu(args.feishu_webhook, render_feishu_text(date, output_path, items, audio_path, audio_error))
         app_id = os.environ.get("FEISHU_APP_ID")
         app_secret = os.environ.get("FEISHU_APP_SECRET")
         chat_name = os.environ.get("FEISHU_CHAT_NAME", "AI日课群")

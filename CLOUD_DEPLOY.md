@@ -1,52 +1,116 @@
-# 免费云端部署：GitHub Actions
+# GitHub Actions 云端运行
 
-这个项目可以放到 GitHub Actions 上每天自动跑。电脑关机也不影响飞书推送。
+这个项目可以完全免费地跑在 GitHub Actions 上。电脑关机也不影响每天生成日报。
 
-## 会自动做什么
+## 零配置运行
 
-- 每天 08:37（北京时间）生成 `AI-Daily/YYYY-MM-DD AI 日课.md`，并推送飞书。
-- 每天 09:07（北京时间）生成 `AI-Daily/Podcast/YYYY-MM-DD AI 日课播客稿.md`，并推送飞书。
-- 如果配置了 Fish Audio API Key，还会生成 `AI-Daily/Podcast/Audio/YYYY-MM-DD AI 日课双人播客.mp3`，并在飞书里推送音频链接。
-- 生成的 Markdown 会自动提交回 GitHub 仓库。
+不配置任何 secret，也能运行。
 
-## 需要你手动做一次
+1. Fork 仓库。
+2. 打开 `Actions` 页面。
+3. 启用 workflow。
+4. 选择 `今日信号 Signal Daily`。
+5. 点击 `Run workflow`。
+6. `mode` 选择 `all`。
+7. `audio` 保持 `never`。
 
-1. 在 GitHub 新建一个私有仓库，比如 `ai-daily-mvp`。
-2. 把这个目录里的文件上传到仓库：
-   - `ai_daily.py`
-   - `podcast_daily.py`
-   - `sources.json`
-   - `README.md`
-   - `CLOUD_DEPLOY.md`
-   - `.github/workflows/ai-daily.yml`
-3. 进入仓库的 `Settings` -> `Secrets and variables` -> `Actions`。
-4. 新增一个 Repository secret：
-   - Name: `FEISHU_WEBHOOK_URL`
-   - Secret: 你的飞书机器人 webhook 地址
-5. 新增另一个 Repository secret：
-   - Name: `FISH_API_KEY`
-   - Secret: 你的 Fish Audio API Key
-6. 打开 `.github/workflows/ai-daily.yml`，在 `env:` 里加一行：
+运行完成后，GitHub 会自动提交生成文件：
 
-```yaml
-      FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
+```text
+AI-Daily/YYYY-MM-DD AI 日课.md
+AI-Daily/Podcast/YYYY-MM-DD AI 日课播客稿.md
 ```
 
-最终 `env:` 应该类似这样：
+## 自动运行时间
 
-```yaml
-    env:
-      AI_DAILY_TIMEZONE: Asia/Shanghai
-      FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
-      FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
+默认北京时间：
+
+- 08:37 生成 AI 日课。
+- 09:07 生成播客稿。
+
+GitHub Actions 的定时任务可能有几分钟延迟。
+
+## 可选：飞书文字推送
+
+如果你想每天收到飞书文字推送，进入：
+
+```text
+Settings -> Secrets and variables -> Actions -> New repository secret
 ```
 
-7. 进入仓库的 `Actions` 页面，启用 workflow。
-8. 可选：手动点一次 `AI Daily` -> `Run workflow`，选择 `all`，确认飞书能收到消息。
+新增：
 
-## 注意
+```text
+Name: FEISHU_WEBHOOK_URL
+Secret: 你的飞书群机器人 webhook
+```
 
-- GitHub Actions 的定时任务按 UTC 写，所以配置里 `37 0 * * *` 对应北京时间 08:37，`7 1 * * *` 对应北京时间 09:07。
-- GitHub 官方免费额度对这个任务足够用。私有仓库在 GitHub Free 下每月有免费分钟数；这个脚本每天只跑几分钟。
-- 当前 mp3 由 Fish Audio 生成，使用已经选好的两个中文双人声音。Fish Audio 额度不足时，音频生成会失败，需要补充 API credit 或等额度恢复。
-- 不要把飞书 webhook 直接写进公开代码里，放到 GitHub Secrets 最稳。
+配置后，workflow 会自动推送。没有这个 secret 时，只生成 Markdown。
+
+## 可选：Fish Audio 音频
+
+如果你想生成双人 MP3，新增：
+
+```text
+Name: FISH_API_KEY
+Secret: 你的 Fish Audio API Key
+```
+
+手动运行 workflow 时：
+
+- `audio: never`：不生成音频，适合测试。
+- `audio: auto`：有 `FISH_API_KEY` 时生成音频。
+- `audio: always`：强制尝试生成音频。
+
+定时任务默认使用 `audio: auto`。配置了 `FISH_API_KEY` 时会生成音频；没有 API Key 或额度不足时，只生成文字稿。
+
+## 可选：飞书群内可播放音频
+
+只配置 `FEISHU_WEBHOOK_URL` 时，飞书能收到文字消息和音频文件链接。
+
+如果希望群里直接出现可播放音频，需要配置飞书应用机器人，并添加这些 secrets：
+
+```text
+FEISHU_APP_ID
+FEISHU_APP_SECRET
+```
+
+可选：
+
+```text
+FEISHU_CHAT_NAME
+FEISHU_CHAT_ID
+```
+
+应用机器人需要权限：
+
+- `im:chat:readonly`
+- `im:message:send_as_bot`
+- `im:resource`
+
+并且机器人需要加入目标群聊。
+
+## 常见问题
+
+### 没有飞书会失败吗？
+
+不会。没有 `FEISHU_WEBHOOK_URL` 时，只生成 Markdown。
+
+### 没有 Fish Audio 会失败吗？
+
+不会。没有 `FISH_API_KEY` 或额度不足时，只生成文字稿。
+
+### 生成文件会提交到哪里？
+
+workflow 会提交到当前仓库的 `AI-Daily/` 目录。
+
+### 想改时间怎么办？
+
+编辑 `.github/workflows/ai-daily.yml` 里的 cron。
+
+GitHub Actions 使用 UTC 时间。当前配置：
+
+```yaml
+- cron: "37 0 * * *"  # 北京时间 08:37
+- cron: "7 1 * * *"   # 北京时间 09:07
+```
