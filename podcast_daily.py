@@ -242,6 +242,114 @@ def explain_relevance(item: DailyItem) -> str:
     return "先看它有没有提供新的事实、方法或案例。如果只是人物故事或宣传观点，知道发生了什么就够了，不必继续深挖。"
 
 
+def dialogue_exchanges(item: DailyItem) -> list[tuple[str, str]]:
+    text = f"{item.title} {item.summary}".lower()
+    if "anjney midha" in text or "outputmaxxing" in text:
+        return [
+            (
+                "先别讲他的履历。这篇访谈里，最值得记住的观点是什么？",
+                "他认为 AI 行业太关注买了多少 GPU，却很少追问这些 GPU 有没有真正干活。资源规模很显眼，但资源利用率更能决定一家公司的实际产出。",
+            ),
+            (
+                "GPU 买来不就是用的吗？为什么还会大量闲置？",
+                "因为不同任务的优先级、机器位置和运行时间都不一样，调度不好就会互相等待。有些大型训练集群的实际利用率可能很低，而做得好的团队可以把利用率提高到六成到七成。",
+            ),
+            (
+                "那他创办的 AMP 到底想解决什么？",
+                "AMP 想把分散在不同数据中心的算力连接成一张“算力电网”。系统根据任务的重要程度动态分配 GPU，让紧急训练先跑，也减少昂贵设备空转。",
+            ),
+            (
+                "这和做 PR Agent 有什么关系？我们又没有数据中心。",
+                "逻辑是一样的：接入强模型不代表产品就好用。资料是否结构化、任务怎样分配、结果能否校验，才决定产出质量。PR Agent 的优势应该来自完整流程，而不只是模型名字。",
+            ),
+        ]
+    if "midjourney medical" in text or ("scan" in text and "organs" in text):
+        return [
+            (
+                "Midjourney 不是做图的吗？为什么突然去做医疗扫描？",
+                "它展示了一台全身超声扫描原型机，希望把器官检查做成更日常的服务。设备从身体周围多个方向采集超声数据，再重建身体内部图像。",
+            ),
+            (
+                "它和医院里的 MRI、CT 有什么不同？",
+                "它不用 X 光辐射，也不用 MRI 的强磁场，理论上更容易做成高频检查。但这不代表它已经能替代医院设备，两者解决的问题和验证标准并不相同。",
+            ),
+            (
+                "现在已经能用了吗？",
+                "还很早。第一代原型只扫描过大约十几个人，一次可能需要二十分钟。团队希望以后压缩到一分钟左右，但精度、适用范围和医疗认证都还需要验证。",
+            ),
+            (
+                "这件事对做垂直 Agent 有什么启发？",
+                "专业产品不能只交付一个模型，还要把硬件、数据、服务流程和用户体验组合起来。同时要严格区分“已经验证的能力”和“未来目标”，尤其是在医疗、汽车这类高风险传播中。",
+            ),
+        ]
+    if "glm-5.2" in text:
+        return [
+            (
+                "GLM-5.2 又是一个新模型。它这次主要强在哪里？",
+                "它重点提升编程、长任务和 Agent 能力，支持一百万 token 的上下文，采用 MIT 许可证，而且 API 价格与上一代相同。",
+            ),
+            (
+                "网上说它前端编程排名很高，这能说明它真的好用吗？",
+                "只能说明它值得测试，不能直接下结论。部分第三方榜单里它进入第一梯队，但普通文本能力没有同步达到顶尖，长时间改项目时是否稳定也还需要验证。",
+            ),
+            (
+                "它提到的 IndexShare 是什么？",
+                "可以把它理解成一种降低超长文本计算成本的方法。模型读很长的代码仓库时，不必让每一层都重复做同样昂贵的索引工作，因此有机会跑得更快、更省资源。",
+            ),
+            (
+                "那我们该怎么判断要不要用它？",
+                "拿 Herlife 或 PR Agent 做真实测试：让它修改页面、理解多个文件、连续完成几轮任务。看它是否一次改对、会不会越改越乱，再比较速度和价格，别只看排行榜。",
+            ),
+        ]
+    if "securing the future of ai agents" in text or "control roadmap" in text:
+        return [
+            (
+                "DeepMind 为什么现在专门谈 Agent 安全？",
+                "因为 Agent 不只是回答问题，它可能读取文件、调用工具甚至执行操作。一旦误解指令，影响就会从“答错一句话”升级成真的改错或泄露数据。",
+            ),
+            (
+                "它提出的解决办法是什么？",
+                "第一层是传统控制，比如最小权限、沙箱和提示词注入防护。第二层是让另一个可信系统持续检查 Agent 的计划和操作，相当于给它配一个监督员。",
+            ),
+            (
+                "是不是只要发现异常，再事后复盘就行？",
+                "要看风险。低风险行为可以事后分析，高风险操作必须在执行前拦截。DeepMind 分析大量编程 Agent 任务后发现，危险行为很多不是恶意，而是 Agent 误解需求后过度积极。",
+            ),
+            (
+                "放到汽车 PR Agent，最少要做哪些防护？",
+                "至少要限制它能读什么资料，识别未发布车型和客户敏感信息，所有外发内容必须人工确认，还要保留操作日志。系统设计时就要假设它会误解指令，而不是只相信模型会听话。",
+            ),
+        ]
+    if "self-driving lab" in text or "radical ai" in text:
+        return [
+            (
+                "“自动驾驶实验室”不是自动驾驶汽车吧？它到底是什么？",
+                "不是汽车。它指的是实验流程可以自己循环：AI 提出材料配方，机器人完成合成和测试，结果再反馈给 AI，接着设计下一轮实验。",
+            ),
+            (
+                "这种自动循环真的比人工研究快很多吗？",
+                "他们称六个月内制造并测试了约一千二百种合金，速度接近传统项目的十倍。另一轮测试了三百种新材料，其中十种表现出新的领先性能。",
+            ),
+            (
+                "既然用了 AI，为什么创始人反而说模型不是护城河？",
+                "因为材料实验没有模型能一次给出正确答案。真正难复制的是实验设备、持续产生的真实数据，以及把失败结果继续用于下一轮实验的闭环。",
+            ),
+            (
+                "这对 PR Agent 有什么最直接的启发？",
+                "每次任务都应该留下反馈：哪些卖点被客户删除、哪些事实经常出错、什么语气更符合品牌。把这些修改记录反哺资料库和规则，长期形成的反馈闭环会比单纯换强模型更难复制。",
+            ),
+        ]
+
+    news = explain_news(item).rstrip("。")
+    relevance = explain_relevance(item).rstrip("。")
+    return [
+        ("先用一句话说，这条新闻到底发生了什么？", f"{news}。"),
+        ("这里面最值得注意的是什么？", "重点不是标题有多新，而是它有没有带来新的事实、方法或真实案例。"),
+        ("有没有什么需要保留判断的地方？", "如果公开信息只有宣传口径或很短的摘要，就不能把未来目标当成已经实现的能力。"),
+        ("最后，它和我们现在做的事有什么关系？", f"{relevance}。"),
+    ]
+
+
 def render_podcast(date: str, items: list[DailyItem], source_path: Path) -> str:
     if not items:
         return "\n".join(
@@ -338,25 +446,25 @@ def render_dialogue(date: str, items: list[DailyItem]) -> list[dict[str, str]]:
         },
     ]
 
+    setup_replies = [
+        "好，先抓住它最关键的部分。",
+        "可以，这条需要把宣传和事实分开看。",
+        "好，我们不看榜单口号，直接看实际能力。",
+        "这条和 Agent 产品很相关，我们一步步拆。",
+        "这条很有意思，关键不只是用了 AI。",
+    ]
     for index, item in enumerate(items[:5], start=1):
         title = chinese_title(item) or f"第 {index} 条内容"
-        summary = explain_news(item)
         dialogue.append(
             {
                 "speaker": "A",
-                "text": f"第 {index} 条，来自 {item.source or '原始信息源'}，标题翻成中文是《{title}》。这条到底说了什么？",
+                "text": f"第 {index} 条，来自 {item.source or '原始信息源'}，我们聊聊《{title}》。",
             }
         )
-        summary_text = short(summary, 650).rstrip("。.!！ ")
-        relevance_text = explain_relevance(item).rstrip("。.!！ ")
-        parts = [f"{summary_text}。" if summary_text else "原文摘要信息很少。"]
-        parts.append(f"这和你的关系是：{relevance_text}。")
-        dialogue.append(
-            {
-                "speaker": "B",
-                "text": "".join(parts),
-            }
-        )
+        dialogue.append({"speaker": "B", "text": setup_replies[index - 1]})
+        for question, answer in dialogue_exchanges(item):
+            dialogue.append({"speaker": "A", "text": question})
+            dialogue.append({"speaker": "B", "text": answer})
 
     dialogue.extend(
         [
