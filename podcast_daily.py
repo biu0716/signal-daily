@@ -113,6 +113,85 @@ def clean_spoken_text(value: str) -> str:
     return value.strip()
 
 
+def contains_chinese(value: str) -> bool:
+    return bool(re.search(r"[\u4e00-\u9fff]", value))
+
+
+def translate_to_chinese(value: str) -> str:
+    value = clean_spoken_text(value)
+    if not value or contains_chinese(value):
+        return value
+    query = urllib.parse.urlencode(
+        {
+            "client": "gtx",
+            "sl": "auto",
+            "tl": "zh-CN",
+            "dt": "t",
+            "q": value,
+        }
+    )
+    request = urllib.request.Request(
+        f"https://translate.googleapis.com/translate_a/single?{query}",
+        headers={"User-Agent": "Mozilla/5.0"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            result = json.loads(response.read().decode("utf-8"))
+        translated = "".join(part[0] for part in result[0] if part and part[0])
+        return translated.strip() or value
+    except (OSError, ValueError, KeyError, TypeError):
+        return ""
+
+
+def chinese_title(item: DailyItem) -> str:
+    text = f"{item.title} {item.summary}".lower()
+    if "anjney midha" in text or "outputmaxxing" in text:
+        return "投资人 Anjney Midha：如何押中多家 AI 公司"
+    if "midjourney medical" in text or ("scan" in text and "organs" in text):
+        return "Midjourney 进入医疗领域：让器官扫描像称体重一样简单"
+    if "glm-5.2" in text:
+        return "GLM-5.2 发布，主打前端编程能力"
+    if "securing the future of ai agents" in text:
+        return "怎样让 AI Agent 更安全"
+    if "self-driving lab" in text or "radical ai" in text:
+        return "AI 自动实验室：真正的优势可能不在模型"
+    return translate_to_chinese(item.title) or ""
+
+
+def explain_news(item: DailyItem) -> str:
+    text = f"{item.title} {item.summary}".lower()
+    if "anjney midha" in text or "outputmaxxing" in text:
+        return "这是一篇投资人访谈。Anjney Midha 曾投资 Anthropic、Mistral、Black Forest Labs 等 AI 公司，文章主要回顾他的经历，以及他现在通过 AMP 关注哪些 AI 方向。"
+    if "midjourney medical" in text or ("scan" in text and "organs" in text):
+        return "Midjourney 宣布进入医疗领域，想把器官扫描做成像称体重一样方便的日常体验。目前公开摘要很短，具体能检查什么、准不准确，还需要看原文确认。"
+    if "glm-5.2" in text:
+        return "GLM-5.2 是一个新发布的开放模型，主打前端代码生成。报道还提到一种加快模型输出的方法，但仅凭“排名第一”还不能证明它在真实项目里更好用。"
+    if "securing the future of ai agents" in text or "control roadmap" in text:
+        return "DeepMind 提出一套 AI Agent 安全方案：一方面使用传统权限控制，另一方面实时监控 Agent 的行为，发现异常时及时阻止。"
+    if "self-driving lab" in text or "radical ai" in text:
+        return "Radical AI 在用 AI 自动安排材料实验、读取结果并继续下一轮测试。它认为真正难复制的不是模型，而是实验室、数据和不断试验的能力。"
+    translated = translate_to_chinese(item.summary)
+    translated = translated.rstrip("。.!！ ")
+    return translated or "目前公开摘要信息很少，只能先确认主题，不能据此下结论。"
+
+
+def explain_relevance(item: DailyItem) -> str:
+    text = f"{item.title} {item.summary}".lower()
+    if any(word in text for word in ["investor", "anthropic", "mistral", "black forest labs", "fund"]):
+        return "它能帮助你了解资本正在长期押注哪些 AI 公司和方向。不过这更偏行业人物与投资观察，和你当前做 PR Agent 的关系不算直接。"
+    if any(word in text for word in ["medical", "organ", "health", "diagnosis"]):
+        return "它是 AI 进入医疗与健康服务的产品案例。值得看的是，它怎样把复杂检查做成普通人容易理解和使用的体验；但不能把产品宣传当成医学结论。"
+    if any(word in text for word in ["coding", "frontend", "code", "glm"]):
+        return "如果你正在用 AI 做产品，真正要看的是它能不能更稳定地写前端、减少修改次数，以及速度和价格是否合适。排行榜第一本身并不重要。"
+    if any(word in text for word in ["security", "securing", "control roadmap", "safeguard", "monitoring"]):
+        return "这和 PR Agent 很直接：当 Agent 能读取内部资料、调用工具时，必须防止它越权、误操作或泄露信息。安全监控需要从产品设计阶段就加入。"
+    if any(word in text for word in ["self-driving lab", "materials", "radical ai", "experiment"]):
+        return "它给垂直 Agent 的启发是：真正的优势往往不只来自模型，而是来自行业数据、实验设备和持续反馈。汽车 PR Agent 也需要自己的资料库和校验闭环。"
+    if "agent" in text:
+        return "对你来说，重点不是 Agent 的概念，而是它能否完成真实任务、哪里会失败，以及是否能安全接入现有工作流程。"
+    return "先看它有没有提供新的事实、方法或案例。如果只是人物故事或宣传观点，知道发生了什么就够了，不必继续深挖。"
+
+
 def render_podcast(date: str, items: list[DailyItem], source_path: Path) -> str:
     if not items:
         return "\n".join(
@@ -129,12 +208,13 @@ def render_podcast(date: str, items: list[DailyItem], source_path: Path) -> str:
         )
 
     lead_item = items[0]
+    lead_title = chinese_title(lead_item) or "今天的第一条 AI 线索"
     lines = [
         f"# {date} AI 日课播客稿",
         "",
         "## 开场",
         "",
-        f"早上好。今天最值得听的主线是：{lead_item.title}。它不一定是最大的新闻，但最适合作为今天理解 AI 进展的入口。",
+        f"早上好。今天先从《{lead_title}》讲起。我们不堆术语，只说清楚发生了什么，以及它和你有什么关系。",
         "",
         "## 正文",
         "",
@@ -150,19 +230,18 @@ def render_podcast(date: str, items: list[DailyItem], source_path: Path) -> str:
 
     for index, item in enumerate(items, start=1):
         transition = transitions[index - 1] if index <= len(transitions) else f"第 {index} 条。"
+        title = chinese_title(item) or f"第 {index} 条内容"
+        summary = explain_news(item)
         lines.extend(
             [
                 f"{transition}",
                 "",
-                f"这条来自 {item.source or '原始信息源'}，标题是《{item.title}》。",
+                f"这条来自 {item.source or '原始信息源'}，讲的是《{title}》。",
             ]
         )
-        if item.summary:
-            lines.append(f"简单说，{short(clean_spoken_text(item.summary), 140)}")
-        if item.why:
-            lines.append(f"它值得看，是因为{short(clean_spoken_text(item.why), 150)}")
-        if item.judgment:
-            lines.append(f"更实际地说，{short(clean_spoken_text(item.judgment), 170)}")
+        if summary:
+            lines.append(f"发生了什么：{short(summary, 180)}")
+        lines.append(f"和你有什么关系：{explain_relevance(item)}")
         if item.link:
             lines.append(f"原文链接：{item.link}")
         lines.append("")
@@ -197,6 +276,7 @@ def render_dialogue(date: str, items: list[DailyItem]) -> list[dict[str, str]]:
             },
         ]
 
+    lead_title = chinese_title(items[0]) or "今天的第一条 AI 线索"
     dialogue: list[dict[str, str]] = [
         {
             "speaker": "A",
@@ -204,28 +284,27 @@ def render_dialogue(date: str, items: list[DailyItem]) -> list[dict[str, str]]:
         },
         {
             "speaker": "B",
-            "text": f"今天的主线可以从这条开始：{items[0].title}。它不一定是最大的新闻，但适合作为今天理解 AI 进展的入口。",
+            "text": f"今天先从《{lead_title}》讲起。我们不堆术语，只说清楚发生了什么，以及它和你有什么关系。",
         },
     ]
 
     for index, item in enumerate(items[:5], start=1):
+        title = chinese_title(item) or f"第 {index} 条内容"
+        summary = explain_news(item)
         dialogue.append(
             {
                 "speaker": "A",
-                "text": f"第 {index} 条，来自 {item.source or '原始信息源'}：《{item.title}》。这条为什么值得听？",
+                "text": f"第 {index} 条，来自 {item.source or '原始信息源'}，标题翻成中文是《{title}》。这条到底说了什么？",
             }
         )
-        parts = []
-        if item.summary:
-            parts.append(f"简单说，{short(clean_spoken_text(item.summary), 120)}。")
-        if item.why:
-            parts.append(f"它值得关注，是因为{short(clean_spoken_text(item.why), 120)}")
-        if item.judgment:
-            parts.append(f"更实际地说，{short(clean_spoken_text(item.judgment), 150)}")
+        summary_text = short(summary, 220).rstrip("。.!！ ")
+        relevance_text = explain_relevance(item).rstrip("。.!！ ")
+        parts = [f"{summary_text}。" if summary_text else "原文摘要信息很少。"]
+        parts.append(f"这和你的关系是：{relevance_text}。")
         dialogue.append(
             {
                 "speaker": "B",
-                "text": "".join(parts) if parts else "这条目前信息还比较少，先知道发生了什么就够了。",
+                "text": "".join(parts),
             }
         )
 
