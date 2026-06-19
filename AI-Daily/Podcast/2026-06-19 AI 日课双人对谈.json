@@ -5,47 +5,47 @@
   },
   {
     "speaker": "B",
-    "text": "今天的主线可以从这条开始：The Professor of Outputmaxxing — Anjney Midha, AMP。它不一定是最大的新闻，但适合作为今天理解 AI 进展的入口。"
+    "text": "今天先从《投资人 Anjney Midha：如何押中多家 AI 公司》讲起。我们不堆术语，只说清楚发生了什么，以及它和你有什么关系。"
   },
   {
     "speaker": "A",
-    "text": "第 1 条，来自 Swyx：《The Professor of Outputmaxxing — Anjney Midha, AMP》。这条为什么值得听？"
+    "text": "第 1 条，来自 Swyx，标题翻成中文是《投资人 Anjney Midha：如何押中多家 AI 公司》。这条到底说了什么？"
   },
   {
     "speaker": "B",
-    "text": "简单说，We talk about how this legendary investor went from humble beginnings in Singapore to leading rounds in Anthropic, Mistr...。它值得关注，是因为它来自长期关注的信息源，但只看标题还无法判断价值，需要快速确认正文有没有新东西。更实际地说，目前的信息还不够。打开原文时，只需要找一个明确的新观点、数据或可复用方法；如果没有，就不用继续花时间。"
+    "text": "这是一篇投资人访谈。Anjney Midha 曾投资 Anthropic、Mistral、Black Forest Labs 等 AI 公司，文章主要回顾他的经历，以及他现在通过 AMP 关注哪些 AI 方向。这和你的关系是：它能帮助你了解资本正在长期押注哪些 AI 公司和方向。不过这更偏行业人物与投资观察，和你当前做 PR Agent 的关系不算直接。"
   },
   {
     "speaker": "A",
-    "text": "第 2 条，来自 Swyx：《[AINews] Midjourney Medical: scan your organs like you step on a scale》。这条为什么值得听？"
+    "text": "第 2 条，来自 Swyx，标题翻成中文是《Midjourney 进入医疗领域：让器官扫描像称体重一样简单》。这条到底说了什么？"
   },
   {
     "speaker": "B",
-    "text": "简单说，The only bootstrapped frontier lab announces its second product and second。它值得关注，是因为它来自长期关注的信息源，但只看标题还无法判断价值，需要快速确认正文有没有新东西。更实际地说，目前的信息还不够。打开原文时，只需要找一个明确的新观点、数据或可复用方法；如果没有，就不用继续花时间。"
+    "text": "Midjourney 宣布进入医疗领域，想把器官扫描做成像称体重一样方便的日常体验。目前公开摘要很短，具体能检查什么、准不准确，还需要看原文确认。这和你的关系是：它是 AI 进入医疗与健康服务的产品案例。值得看的是，它怎样把复杂检查做成普通人容易理解和使用的体验；但不能把产品宣传当成医学结论。"
   },
   {
     "speaker": "A",
-    "text": "第 3 条，来自 Swyx：《[AINews] GLM-5.2: the top Frontend Coding model in the world, IndexShare for Speculative Decoding》。这条为什么值得听？"
+    "text": "第 3 条，来自 Swyx，标题翻成中文是《GLM-5.2 发布，主打前端编程能力》。这条到底说了什么？"
   },
   {
     "speaker": "B",
-    "text": "简单说，We have a new top open model in the world!。它值得关注，是因为新模型只有在效果、速度或价格上带来实际变化，才可能影响我们现在使用的工具。更实际地说，别急着被排行榜吸引。先看它能不能让你现在的任务做得更好、更快或更便宜；如果不能，知道发布了就够了。"
+    "text": "GLM-5.2 是一个新发布的开放模型，主打前端代码生成。报道还提到一种加快模型输出的方法，但仅凭“排名第一”还不能证明它在真实项目里更好用。这和你的关系是：如果你正在用 AI 做产品，真正要看的是它能不能更稳定地写前端、减少修改次数，以及速度和价格是否合适。排行榜第一本身并不重要。"
   },
   {
     "speaker": "A",
-    "text": "第 4 条，来自 Demis Hassabis：《Securing the future of AI agents》。这条为什么值得听？"
+    "text": "第 4 条，来自 Demis Hassabis，标题翻成中文是《怎样让 AI Agent 更安全》。这条到底说了什么？"
   },
   {
     "speaker": "B",
-    "text": "简单说，Securing internal systems with an AI Control Roadmap, combining traditional safeguards and real-time monitoring.。它值得关注，是因为Agent 的概念很多，但真正有用的是具体做法：它完成了什么任务，哪里容易失败，能不能重复使用。更实际地说，不要只看它说得多宏大。重点找真实案例：解决了什么任务、哪一步仍会失败、能不能放进现有日常工作程。"
+    "text": "DeepMind 提出一套 AI Agent 安全方案：一方面使用传统权限控制，另一方面实时监控 Agent 的行为，发现异常时及时阻止。这和你的关系是：这和 PR Agent 很直接：当 Agent 能读取内部资料、调用工具时，必须防止它越权、误操作或泄露信息。安全监控需要从产品设计阶段就加入。"
   },
   {
     "speaker": "A",
-    "text": "第 5 条，来自 Swyx：《🔬 The Self-Driving Lab — Joseph Krause, Radical AI》。这条为什么值得听？"
+    "text": "第 5 条，来自 Swyx，标题翻成中文是《AI 自动实验室：真正的优势可能不在模型》。这条到底说了什么？"
   },
   {
     "speaker": "B",
-    "text": "简单说，Radical AI's Joseph Krause on why the moat in materials is the lab, not the model。它值得关注，是因为新模型只有在效果、速度或价格上带来实际变化，才可能影响我们现在使用的工具。更实际地说，别急着被排行榜吸引。先看它能不能让你现在的任务做得更好、更快或更便宜；如果不能，知道发布了就够了。"
+    "text": "Radical AI 在用 AI 自动安排材料实验、读取结果并继续下一轮测试。它认为真正难复制的不是模型，而是实验室、数据和不断试验的能力。这和你的关系是：它给垂直 Agent 的启发是：真正的优势往往不只来自模型，而是来自行业数据、实验设备和持续反馈。汽车 PR Agent 也需要自己的资料库和校验闭环。"
   },
   {
     "speaker": "A",
