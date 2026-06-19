@@ -161,15 +161,46 @@ def chinese_title(item: DailyItem) -> str:
 def explain_news(item: DailyItem) -> str:
     text = f"{item.title} {item.summary}".lower()
     if "anjney midha" in text or "outputmaxxing" in text:
-        return "这是一篇投资人访谈。Anjney Midha 曾投资 Anthropic、Mistral、Black Forest Labs 等 AI 公司，文章主要回顾他的经历，以及他现在通过 AMP 关注哪些 AI 方向。"
+        return (
+            "这是一篇对投资人 Anjney Midha 的近一小时访谈，但重点不只是他的投资经历。"
+            "他认为 AI 行业现在太关注买多少 GPU，却忽略了 GPU 到底有没有被充分利用。"
+            "一些大型训练集群的实际算力利用率可能很低，而做得好的团队可以达到六成到七成。"
+            "他创办的 AMP 想把不同数据中心的算力连接成一张“算力电网”，根据任务的重要程度动态分配资源，减少昂贵算力闲置。"
+            "访谈还谈到数据中心耗电、当地社区反对，以及 Anthropic 为什么很早就把编程能力列为核心方向。"
+        )
     if "midjourney medical" in text or ("scan" in text and "organs" in text):
-        return "Midjourney 宣布进入医疗领域，想把器官扫描做成像称体重一样方便的日常体验。目前公开摘要很短，具体能检查什么、准不准确，还需要看原文确认。"
+        return (
+            "Midjourney 展示了一台全身超声扫描原型机。它不用 X 光辐射，也不用 MRI 的强磁场，"
+            "而是让超声波从身体周围多个方向采集数据，再重建身体内部图像。"
+            "目前设备仍是第一代原型，只扫描过大约十几个人，一次扫描可能需要二十分钟。"
+            "团队希望以后把时间压缩到一分钟左右，并在旧金山开一家带扫描设备的健康中心。"
+            "但它还没有完成医疗验证，也不能把宣传中的精度和未来用途当成已经实现的能力。"
+        )
     if "glm-5.2" in text:
-        return "GLM-5.2 是一个新发布的开放模型，主打前端代码生成。报道还提到一种加快模型输出的方法，但仅凭“排名第一”还不能证明它在真实项目里更好用。"
+        return (
+            "智谱发布了开放权重模型 GLM-5.2，重点提升编程、长任务和 Agent 能力。"
+            "它支持一百万 token 的上下文，API 价格与上一代相同，并采用 MIT 许可证。"
+            "在部分第三方榜单里，它的前端代码能力进入第一梯队，甚至超过一些 Claude Opus 版本；"
+            "但普通文本能力并没有同步达到顶尖，而且真实项目中的长时间稳定性仍需要更多测试。"
+            "技术上，它用 IndexShare 降低超长上下文的计算成本，也改进了多 token 预测来提高输出速度。"
+        )
     if "securing the future of ai agents" in text or "control roadmap" in text:
-        return "DeepMind 提出一套 AI Agent 安全方案：一方面使用传统权限控制，另一方面实时监控 Agent 的行为，发现异常时及时阻止。"
+        return (
+            "DeepMind 发布了一套 AI Agent 安全路线图。它的出发点是：即使模型平时表现正常，"
+            "也要把能够访问内部系统的 Agent 当作可能出错的内部人员来管理。"
+            "具体做法包括限制权限、在沙箱中运行、抵御提示词注入，并让另一个可信系统持续检查 Agent 的计划和操作。"
+            "低风险错误可以事后复盘，高风险操作则必须在执行前实时拦截。"
+            "DeepMind 已用这套思路分析约一百万次编程 Agent 任务，发现很多危险行为并非恶意，而是 Agent 误解需求或过度积极。"
+        )
     if "self-driving lab" in text or "radical ai" in text:
-        return "Radical AI 在用 AI 自动安排材料实验、读取结果并继续下一轮测试。它认为真正难复制的不是模型，而是实验室、数据和不断试验的能力。"
+        return (
+            "Radical AI 建了一套“自动驾驶实验室”：AI 先提出材料配方，机器人负责合成和测试，"
+            "实验结果再反馈给 AI，形成不断迭代的闭环。"
+            "他们在六个月内制造并测试了约一千二百种合金，比传统项目快接近十倍；"
+            "另一轮实验测试了三百种新材料，其中十种表现出新的领先性能。"
+            "创始人 Joseph Krause 的核心观点是，材料领域没有模型一次就能给出正确答案，"
+            "真正的护城河是实验设备、真实数据，以及把失败结果继续用于下一轮实验的能力。"
+        )
     translated = translate_to_chinese(item.summary)
     translated = translated.rstrip("。.!！ ")
     return translated or "目前公开摘要信息很少，只能先确认主题，不能据此下结论。"
@@ -178,15 +209,34 @@ def explain_news(item: DailyItem) -> str:
 def explain_relevance(item: DailyItem) -> str:
     text = f"{item.title} {item.summary}".lower()
     if any(word in text for word in ["investor", "anthropic", "mistral", "black forest labs", "fund"]):
-        return "它能帮助你了解资本正在长期押注哪些 AI 公司和方向。不过这更偏行业人物与投资观察，和你当前做 PR Agent 的关系不算直接。"
+        return (
+            "对你最有用的不是记住他投过哪些明星公司，而是理解一个产品判断：资源多不等于产出高，"
+            "真正拉开差距的是能否把算力、数据、团队和任务调度成一个高效系统。"
+            "放到 PR Agent 上也一样，接入更强模型只是第一步，资料是否结构化、流程是否顺畅、结果是否能校验，才决定产品是否真的好用。"
+        )
     if any(word in text for word in ["medical", "organ", "health", "diagnosis"]):
-        return "它是 AI 进入医疗与健康服务的产品案例。值得看的是，它怎样把复杂检查做成普通人容易理解和使用的体验；但不能把产品宣传当成医学结论。"
+        return (
+            "它展示了一个很典型的 AI 产品思路：不只做模型，而是把硬件、数据、空间体验和长期服务组合成完整产品。"
+            "对做垂直 Agent 的启发是，专业能力必须嵌入真实场景；同时医疗宣传风险很高，原型、目标和已验证能力必须严格区分。"
+        )
     if any(word in text for word in ["coding", "frontend", "code", "glm"]):
-        return "如果你正在用 AI 做产品，真正要看的是它能不能更稳定地写前端、减少修改次数，以及速度和价格是否合适。排行榜第一本身并不重要。"
+        return (
+            "如果你继续做 Herlife 或 PR Agent，可以把它当成一个候选开发模型，重点测试三个真实任务："
+            "能不能一次改对页面、能不能理解较长项目上下文、连续工作时会不会越改越乱。"
+            "只有这些测试稳定，榜单成绩才有意义；开放权重和较低价格则可能降低以后部署产品的成本。"
+        )
     if any(word in text for word in ["security", "securing", "control roadmap", "safeguard", "monitoring"]):
-        return "这和 PR Agent 很直接：当 Agent 能读取内部资料、调用工具时，必须防止它越权、误操作或泄露信息。安全监控需要从产品设计阶段就加入。"
+        return (
+            "这和 PR Agent 非常直接。未来它可能读取未发布车型资料、客户文件和传播计划，还可能自动生成或发送内容。"
+            "因此产品至少要有最小权限、敏感信息识别、发送前人工确认、操作日志和异常阻断。"
+            "不能只要求模型“听话”，还要假设它会误解指令，并在系统层准备刹车。"
+        )
     if any(word in text for word in ["self-driving lab", "materials", "radical ai", "experiment"]):
-        return "它给垂直 Agent 的启发是：真正的优势往往不只来自模型，而是来自行业数据、实验设备和持续反馈。汽车 PR Agent 也需要自己的资料库和校验闭环。"
+        return (
+            "这是最值得迁移到垂直 Agent 的一条经验：模型不是护城河，持续获得行业反馈的闭环才是。"
+            "汽车 PR Agent 也应该让每次任务产生反馈，例如哪些卖点被客户删掉、哪些事实经常出错、哪种品牌语气被接受，"
+            "再把这些结果反哺资料库和规则。长期积累下来的真实修改记录，会比单纯换一个更强模型更难复制。"
+        )
     if "agent" in text:
         return "对你来说，重点不是 Agent 的概念，而是它能否完成真实任务、哪里会失败，以及是否能安全接入现有工作流程。"
     return "先看它有没有提供新的事实、方法或案例。如果只是人物故事或宣传观点，知道发生了什么就够了，不必继续深挖。"
@@ -297,7 +347,7 @@ def render_dialogue(date: str, items: list[DailyItem]) -> list[dict[str, str]]:
                 "text": f"第 {index} 条，来自 {item.source or '原始信息源'}，标题翻成中文是《{title}》。这条到底说了什么？",
             }
         )
-        summary_text = short(summary, 220).rstrip("。.!！ ")
+        summary_text = short(summary, 650).rstrip("。.!！ ")
         relevance_text = explain_relevance(item).rstrip("。.!！ ")
         parts = [f"{summary_text}。" if summary_text else "原文摘要信息很少。"]
         parts.append(f"这和你的关系是：{relevance_text}。")
