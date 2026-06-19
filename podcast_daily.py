@@ -96,6 +96,23 @@ def short(value: str, limit: int = 90) -> str:
     return value if len(value) <= limit else value[:limit].rstrip() + "..."
 
 
+def clean_spoken_text(value: str) -> str:
+    value = strip_markdown(value)
+    value = re.sub(
+        r"^(?:简单说|一句话摘要|我的判断(?:是)?|我的初判(?:是)?|初步判断|判断)[：:，,\s]*",
+        "",
+        value,
+    )
+    value = re.sub(r"我的初判(?:是)?[：:]\s*", "", value)
+    value = value.replace("先低成本浏览", "先快速看一遍")
+    value = value.replace("值得沉淀", "值得长期保存")
+    value = value.replace("进入知识卡片", "长期保存")
+    value = value.replace("Review 候选", "候选内容")
+    value = value.replace("可验证的能力变化", "能够实际验证的提升")
+    value = value.replace("工作流", "日常工作")
+    return value.strip()
+
+
 def render_podcast(date: str, items: list[DailyItem], source_path: Path) -> str:
     if not items:
         return "\n".join(
@@ -141,13 +158,11 @@ def render_podcast(date: str, items: list[DailyItem], source_path: Path) -> str:
             ]
         )
         if item.summary:
-            lines.append(f"简单说，{short(item.summary, 140)}")
+            lines.append(f"简单说，{short(clean_spoken_text(item.summary), 140)}")
         if item.why:
-            lines.append(f"它值得看，是因为{short(item.why, 150)}")
+            lines.append(f"它值得看，是因为{short(clean_spoken_text(item.why), 150)}")
         if item.judgment:
-            lines.append(f"我的判断是：{short(item.judgment, 170)}")
-        if item.keep:
-            lines.append(f"沉淀建议：{item.keep}。")
+            lines.append(f"更实际地说，{short(clean_spoken_text(item.judgment), 170)}")
         if item.link:
             lines.append(f"原文链接：{item.link}")
         lines.append("")
@@ -202,17 +217,15 @@ def render_dialogue(date: str, items: list[DailyItem]) -> list[dict[str, str]]:
         )
         parts = []
         if item.summary:
-            parts.append(f"简单说，{short(item.summary, 120)}")
+            parts.append(f"简单说，{short(clean_spoken_text(item.summary), 120)}。")
         if item.why:
-            parts.append(short(item.why, 120))
+            parts.append(f"它值得关注，是因为{short(clean_spoken_text(item.why), 120)}")
         if item.judgment:
-            parts.append(f"我的判断是：{short(item.judgment, 140)}")
-        if item.keep:
-            parts.append(f"沉淀建议是：{item.keep}。")
+            parts.append(f"更实际地说，{short(clean_spoken_text(item.judgment), 150)}")
         dialogue.append(
             {
                 "speaker": "B",
-                "text": "".join(parts) if parts else "这条目前信息还比较少，先低成本浏览，不急着沉淀。",
+                "text": "".join(parts) if parts else "这条目前信息还比较少，先知道发生了什么就够了。",
             }
         )
 

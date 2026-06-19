@@ -208,32 +208,32 @@ def review_item(item: Item, score: int, score_reason: str, status: str) -> Revie
     title = item.title.lower()
 
     if "benchmark" in text or "frontiercode" in text:
-        why = "它关注代码能力评估，而不是单纯发布新模型；这类基准会影响大家接下来怎么判断 AI coding 的真实进步。"
-        judgment = "先列为高优先级。我的初判是：如果它能衡量代码质量、可维护性和工程上下文，而不只是 pass rate，就值得沉淀；如果只是又一个排行榜，就只做信息记录。"
+        why = "它不是又发布一个模型，而是在回答一个更实际的问题：AI 写的代码到底能不能用于真实项目。"
+        judgment = "重点看它是不是只比答题分数，还是也会检查代码好不好维护、能不能用于真实项目。只有后者，才真正有参考价值。"
         keep = "待复核后大概率沉淀"
     elif "gemma" in text or "multimodal" in text:
-        why = "小/中型开放模型的多模态路线值得跟踪，尤其是 encoder-free 这种架构选择，可能影响本地部署和低成本产品实验。"
-        judgment = "建议快速读原文的模型能力、许可和实际限制。我的初判是：技术方向值得记录，但只有在它展示了明确的成本、延迟或应用优势时，才进入知识卡片。"
+        why = "它可能让看图、读文字这类 AI 功能运行得更便宜，也更容易放到自己的产品里。"
+        judgment = "先看三个问题：效果有没有变好、运行成本有没有下降、使用限制多不多。说不清这三点，就暂时不用投入太多时间。"
         keep = "待复核"
     elif "robot" in text or "robotics" in text:
-        why = "机器人是模型从屏幕走向物理世界的关键场景，DeepMind 在这个方向的动作会影响 embodied AI 的产业节奏。"
-        judgment = "先不急着沉淀。我的初判是：如果文章主要是合作/区域战略，就是行业动态；如果包含模型、数据或训练方法细节，再转成长期笔记。"
+        why = "机器人能检验 AI 是否真的会理解环境并完成动作，而不只是会在屏幕里回答问题。"
+        judgment = "先判断它讲的是公司合作新闻，还是机器人能力真的有了进步。前者知道即可，后者才值得仔细读。"
         keep = "默认不沉淀"
     elif "agent" in text or "agents" in text:
-        why = "Agent 内容容易很多，但真正有价值的是能否提供可复用的工作流、评估方法或失败案例。"
-        judgment = "带着怀疑看。我的初判是：优先找具体案例和边界条件，少记录愿景，多记录可验证做法。"
+        why = "Agent 的概念很多，但真正有用的是具体做法：它完成了什么任务，哪里容易失败，能不能重复使用。"
+        judgment = "不要只看它说得多宏大。重点找真实案例：解决了什么任务、哪一步仍会失败、能不能放进现有工作流程。"
         keep = "待复核"
     elif "safety" in text or "alignment" in text:
-        why = "安全与对齐会影响前沿模型发布节奏，也会改变产品和监管环境。"
-        judgment = "值得读，但要区分研究进展、政策姿态和公司叙事。我的初判是：只有出现新的论证框架或实证结果，才值得沉淀。"
+        why = "安全规则会直接决定哪些模型能力能开放、产品能怎么用，也可能影响之后的监管要求。"
+        judgment = "先分清它带来了新证据，还是公司在表达立场。对实际产品和监管有影响的证据，更值得关注。"
         keep = "待复核"
     elif "model" in text or "llm" in text:
-        why = "模型层更新可能改变工具选择、成本结构和应用能力边界。"
-        judgment = "先看是否有可验证的能力变化。我的初判是：发布类信息容易过期，除非它改变了你的工作流，否则只保留摘要。"
+        why = "新模型只有在效果、速度或价格上带来实际变化，才可能影响我们现在使用的工具。"
+        judgment = "别急着被排行榜吸引。先看它能不能让你现在的任务做得更好、更快或更便宜；如果不能，知道发布了就够了。"
         keep = "待复核"
     else:
-        why = "它来自固定高质量信息源，适合作为今日 Review 候选。"
-        judgment = "先低成本浏览。我的初判是：标题和摘要还不足以证明它值得沉淀，需要打开原文找一个明确观点、数据或方法。"
+        why = "它来自长期关注的信息源，但只看标题还无法判断价值，需要快速确认正文有没有新东西。"
+        judgment = "目前的信息还不够。打开原文时，只需要找一个明确的新观点、数据或可复用方法；如果没有，就不用继续花时间。"
         keep = "默认不沉淀"
 
     if status == "补位阅读" and keep == "待复核后大概率沉淀":
@@ -283,10 +283,11 @@ def render_markdown(items: list[ReviewedItem], rules: dict, now: datetime, local
                     f"- 为什么值得看：{item.why}",
                     f"- 我的判断：{item.judgment}",
                     f"- 入选理由：{item.score_reason}",
-                    f"- 是否沉淀：{item.keep}",
-                    "",
                 ]
             )
+            if item.keep != "默认不沉淀":
+                lines.append(f"- 是否沉淀：{item.keep}")
+            lines.append("")
 
     lines.extend(
         [
@@ -329,10 +330,11 @@ def render_feishu_text(items: list[ReviewedItem], output_path: Path | None, now:
                 f"来源: {item.source} / {reviewed.status}",
                 f"链接: {item.link}",
                 f"判断: {reviewed.judgment}",
-                f"沉淀建议: {reviewed.keep}",
-                "",
             ]
         )
+        if reviewed.keep != "默认不沉淀":
+            lines.append(f"沉淀建议: {reviewed.keep}")
+        lines.append("")
     return "\n".join(lines).strip()
 
 
