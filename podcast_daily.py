@@ -240,7 +240,8 @@ def explain_relevance(item: DailyItem) -> str:
         )
     if "agent" in text:
         return "对你来说，重点放在三件事：它能否完成真实任务，哪里会失败，是否能安全接入现有工作流程。"
-        return "判断它的价值，看有没有新的事实、方法或案例。只有人物故事或宣传观点的话，知道发生了什么就够了。"
+        
+    return "判断它的价值，看有没有新的事实、方法或案例。只有人物故事或宣传观点的话，知道发生了什么就够了。"
 
 
 def dialogue_exchanges(item: DailyItem) -> list[tuple[str, str]]:
@@ -341,8 +342,8 @@ def dialogue_exchanges(item: DailyItem) -> list[tuple[str, str]]:
             ),
         ]
 
-    news = explain_news(item).rstrip("。")
-    relevance = explain_relevance(item).rstrip("。")
+    news = (explain_news(item) or "这条信息目前公开摘要较少，只能先确认主题，不能据此下结论").rstrip("。")
+    relevance = (explain_relevance(item) or "这条信息值得关注，但需要更多上下文判断它和当前项目的关系").rstrip("。")
     return [
         ("先用一句话说，这条新闻到底发生了什么？", f"{news}。"),
         ("这里面最值得注意的是什么？", "看它有没有带来新的事实、方法或真实案例。只有标题新鲜，价值不够。"),
